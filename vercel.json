@@ -1,0 +1,53 @@
+{
+  "version": 2,
+  "name": "grudge-warlords",
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "3D-Action-RPG-JavaScript-main/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/3D-Action-RPG-JavaScript-main/(.*)",
+      "dest": "/3D-Action-RPG-JavaScript-main/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/3D-Action-RPG-JavaScript-main/$1"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/3D-Action-RPG-JavaScript-main/index.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/3D-Action-RPG-JavaScript-main/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "X-Requested-With, Content-Type, Authorization"
+        }
+      ]
+    }
+  ]
+}

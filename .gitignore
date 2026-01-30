@@ -1,0 +1,65 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+/coverage
+
+# Production
+/build
+/dist
+
+# Misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+*.log
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS
+Thumbs.db
+
+# Vercel
+.vercel
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv
+venv/
+ENV/
+
+# Large files that shouldn't be in git
+*.zip
+*.rar
+*.tar.gz
+
+# Keep the extracted character models but ignore large archives
+BarbarianModel.zip
+dwarfmodel.zip
+ElfModle.zip
+HumanModel.zip
+OrcModel.zip
+UndeadModle.zip
+reference-3D-Action-RPG.zip
+3D-Action-RPG-JavaScript-main.zip

@@ -1,0 +1,32 @@
+{
+  "name": "grudge-warlords-island",
+  "version": "1.0.0",
+  "description": "Grudge Warlords - 3D Action RPG with generative island integration",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "game": "node server-game.js",
+    "editor": "node server-editor.js",
+    "dev": "concurrently \"npm run game\" \"npm run editor\"",
+    "install-all": "npm install && cd 3D-Action-RPG-JavaScript-main && npm install && cd ../Skill-Tree-Maker-main && npm install"
+  },
+  "keywords": [
+    "babylonjs",
+    "rpg",
+    "3d",
+    "game",
+    "grudge-island",
+    "procedural-generation"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "compression": "^1.8.1",
+    "cors": "^2.8.5",
+    "express": "^4.22.1"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.1.11"
+  }
+}

@@ -1,0 +1,25 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../ummorpgdev"
+		}
+	],
+	"settings": {
+		"DockerRun.DisableDockerrc": true,
+		"DockerRun.Containers": [
+			"3e2da2405803",
+			"2599f62a3004",
+			"ef4e4458a716",
+			"fb2ea62a19a9",
+			"2b6befaff914",
+			"b96a29b570d7",
+			"e1236d825bd2",
+			"769848882c39",
+			"a8d4473bdabe",
+			"7a3a522ba6d7"
+		]
+	}
+}

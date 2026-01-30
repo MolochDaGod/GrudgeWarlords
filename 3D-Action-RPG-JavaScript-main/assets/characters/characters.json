@@ -1,0 +1,210 @@
+{
+  "characters": {
+    "barbarian": {
+      "id": "barbarian",
+      "name": "Barbarian",
+      "displayName": "Barbarian Warrior",
+      "description": "A fierce warrior from the frozen north, known for raw strength and primal rage.",
+      "race": "Human",
+      "class": "Warrior",
+      "folder": "barbarian",
+      "subfolder": "biped",
+      "modelFile": "Character_output.glb",
+      "animationFile": "Meshy_Merged_Animations.glb",
+      "scale": 1.0,
+      "positionY": 0,
+      "stats": {
+        "health": 150,
+        "strength": 18,
+        "dexterity": 12,
+        "intelligence": 8,
+        "vitality": 16,
+        "speed": 1.0
+      },
+      "colors": {
+        "skin": ["#d4a574", "#c89968", "#a87854", "#8b6f47"],
+        "hair": ["#3d2817", "#6b4423", "#8b6f47", "#d4a574"],
+        "armor": ["#8b0000", "#4a1c1c", "#2d1b1b"]
+      },
+      "icon": "./assets/icons/barbarian.png"
+    },
+    "dwarf": {
+      "id": "dwarf",
+      "name": "Dwarf",
+      "displayName": "Mountain Dwarf",
+      "description": "A stout warrior from the mountain halls, master of axes and unyielding defense.",
+      "race": "Dwarf",
+      "class": "Defender",
+      "folder": "dwarf",
+      "subfolder": "biped",
+      "modelFile": "Character_output.glb",
+      "animationFile": "Meshy_Merged_Animations.glb",
+      "scale": 0.85,
+      "positionY": 0,
+      "stats": {
+        "health": 140,
+        "strength": 16,
+        "dexterity": 10,
+        "intelligence": 12,
+        "vitality": 18,
+        "speed": 0.9
+      },
+      "colors": {
+        "skin": ["#d4a574", "#c89968", "#b88860"],
+        "hair": ["#3d2817", "#8b6f47", "#d4a574", "#ff6b35"],
+        "armor": ["#4a4a4a", "#696969", "#2f4f4f"]
+      },
+      "icon": "./assets/icons/dwarf.png"
+    },
+    "elf": {
+      "id": "elf",
+      "name": "Elf",
+      "displayName": "High Elf",
+      "description": "A graceful being of ancient lineage, combining magic and blade with deadly precision.",
+      "race": "Elf",
+      "class": "Spellblade",
+      "folder": "elf",
+      "subfolder": "biped",
+      "modelFile": "Character_output.glb",
+      "animationFile": "Meshy_Merged_Animations.glb",
+      "scale": 1.05,
+      "positionY": 0,
+      "stats": {
+        "health": 100,
+        "strength": 12,
+        "dexterity": 16,
+        "intelligence": 16,
+        "vitality": 10,
+        "speed": 1.15
+      },
+      "colors": {
+        "skin": ["#fae7d8", "#f5dfc8", "#e8d5c4"],
+        "hair": ["#ffd700", "#ffffff", "#c0c0c0", "#4a2c2a"],
+        "armor": ["#2e8b57", "#228b22", "#006400"]
+      },
+      "icon": "./assets/icons/elf.png"
+    },
+    "human": {
+      "id": "human",
+      "name": "Human",
+      "displayName": "Human Knight",
+      "description": "A versatile warrior, balanced in all attributes and adaptable to any combat style.",
+      "race": "Human",
+      "class": "Knight",
+      "folder": "human",
+      "subfolder": "biped",
+      "modelFile": "Character_output.glb",
+      "animationFile": "Meshy_Merged_Animations.glb",
+      "scale": 1.0,
+      "positionY": 0,
+      "stats": {
+        "health": 120,
+        "strength": 14,
+        "dexterity": 14,
+        "intelligence": 14,
+        "vitality": 14,
+        "speed": 1.05
+      },
+      "colors": {
+        "skin": ["#d4a574", "#c89968", "#a87854", "#f5dfc8"],
+        "hair": ["#3d2817", "#6b4423", "#8b6f47", "#4a2c2a", "#ffd700"],
+        "armor": ["#4682b4", "#1e90ff", "#4169e1"]
+      },
+      "icon": "./assets/icons/human.png"
+    },
+    "orc": {
+      "id": "orc",
+      "name": "Orc",
+      "displayName": "Orc Berserker",
+      "description": "A brutal warrior of the horde, overwhelming enemies with savage fury and brute force.",
+      "race": "Orc",
+      "class": "Berserker",
+      "folder": "orc",
+      "subfolder": "biped",
+      "modelFile": "Character_output.glb",
+      "animationFile": "Meshy_Merged_Animations.glb",
+      "scale": 1.1,
+      "positionY": 0,
+      "stats": {
+        "health": 160,
+        "strength": 20,
+        "dexterity": 10,
+        "intelligence": 6,
+        "vitality": 16,
+        "speed": 0.95
+      },
+      "colors": {
+        "skin": ["#6b8e23", "#556b2f", "#8fbc8f", "#9acd32"],
+        "hair": ["#000000", "#2f2f2f", "#8b0000"],
+        "armor": ["#8b4513", "#654321", "#3d2817"]
+      },
+      "icon": "./assets/icons/orc.png"
+    },
+    "undead": {
+      "id": "undead",
+      "name": "Undead",
+      "displayName": "Undead Knight",
+      "description": "A cursed warrior risen from death, wielding dark powers and unholy strength.",
+      "race": "Undead",
+      "class": "Death Knight",
+      "folder": "undead",
+      "subfolder": "biped",
+      "modelFile": "Character_output.glb",
+      "animationFile": "Meshy_Merged_Animations.glb",
+      "scale": 1.05,
+      "positionY": 0,
+      "stats": {
+        "health": 110,
+        "strength": 15,
+        "dexterity": 11,
+        "intelligence": 14,
+        "vitality": 12,
+        "speed": 1.0
+      },
+      "colors": {
+        "skin": ["#98a0a8", "#708090", "#5a6978", "#465058"],
+        "hair": ["#000000", "#2f2f2f", "#696969"],
+        "armor": ["#1c1c1c", "#2f2f2f", "#8b0000"]
+      },
+      "icon": "./assets/icons/undead.png"
+    },
+    "racalvin": {
+      "id": "racalvin",
+      "name": "Racalvin",
+      "displayName": "Racalvin Hero",
+      "description": "The original hero, a legendary warrior of mixed heritage.",
+      "race": "Mixed",
+      "class": "Hero",
+      "folder": "racalvin",
+      "subfolder": "animations/sword_shield",
+      "modelFile": "racalvin.glb",
+      "useSeparateAnimations": true,
+      "animations": {
+        "idle": "sword and shield idle.glb",
+        "run": "sword and shield run.glb",
+        "jump": "sword and shield jump.glb",
+        "slash": "sword and shield slash.glb",
+        "attack": "sword and shield attack.glb",
+        "slash2": "sword and shield slash (2).glb",
+        "slash3": "sword and shield slash (3).glb"
+      },
+      "scale": 1.0,
+      "positionY": 0,
+      "stats": {
+        "health": 130,
+        "strength": 15,
+        "dexterity": 15,
+        "intelligence": 15,
+        "vitality": 15,
+        "speed": 1.1
+      },
+      "colors": {
+        "skin": ["#d4a574"],
+        "hair": ["#3d2817"],
+        "armor": ["#4682b4"]
+      },
+      "icon": "./assets/icons/racalvin.png"
+    }
+  },
+  "defaultCharacter": "human"
+}
