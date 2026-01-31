@@ -18,6 +18,15 @@ app.use('/assets', express.static(path.join(__dirname, '3D-Action-RPG-JavaScript
 app.use('/lib', express.static(path.join(__dirname, '3D-Action-RPG-JavaScript-main/lib')));
 app.use('/src', express.static(path.join(__dirname, '3D-Action-RPG-JavaScript-main/src')));
 
+// Favicon routes
+app.get('/favicon.svg', (req, res) => {
+    res.sendFile(path.join(__dirname, '3D-Action-RPG-JavaScript-main', 'favicon.svg'));
+});
+
+app.get('/favicon.ico', (req, res) => {
+    res.sendFile(path.join(__dirname, '3D-Action-RPG-JavaScript-main', 'assets', 'icons', 'favicon.ico'));
+});
+
 // Main route - serve the game
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '3D-Action-RPG-JavaScript-main', 'index.html'));
