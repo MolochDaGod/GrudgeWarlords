@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+
+    <meta property="og:title" content="Grudge Warlords • Island Minimap" />
+    <meta property="og:description" content="2D top-down mirror of your owned 3D island. Nodes constrained to valid build zones and terrain. Live activity view." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Grudge Warlords • Island Minimap" />
+    <meta name="twitter:description" content="Authoritative 2D mirror of the 3D island. Placement always respects allowed terrain and ownership zones." />
+
+    <title>Grudge Warlords • Island Minimap</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;500;600;700&family=Jost:wght@400;600&family=Uncial+Antiqua&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://js.puter.com/v2/" defer></script>
+
+    <style>
+      :root {
+        --bg: #0a0806;
+        --panel: #14120f;
+        --gold: #c5a26f;
+        --accent: #8b5e3c;
+        --text: #e8dcc8;
+        --muted: #8a7660;
+      }
+      body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+      .cinzel { font-family: 'Cinzel', 'Uncial Antiqua', serif; }
+      .fell { font-family: 'IM Fell English SC', serif; }
+
+      #minimap {
+        border: 3px solid #3a2f22;
+        border-radius: 8px;
+        background: #0c0a08;
+        box-shadow: 0 10px 30px -10px rgb(0 0 0 / 0.6), inset 0 0 80px rgb(0 0 0 / 0.4);
+        touch-action: none;
+      }
+
+      .node {
+        cursor: grab;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid #3a2f22;
+      }
+
+      .grudge-gold { color: var(--gold); }
+      .map-hud {
+        font-size: 11px;
+        letter-spacing: 0.5px;
+        background: rgba(10,8,6,0.85);
+        border: 1px solid #3a2f22;
+      }
+
+      .palette-btn {
+        transition: all 0.1s ease;
+      }
+      .palette-btn.active, .palette-btn:hover {
+        border-color: #c5a26f;
+        box-shadow: 0 0 0 1px #c5a26f;
+        transform: translateY(-1px);
+      }
+
+      .terrain-label {
+        font-size: 10px;
+        opacity: 0.7;
+      }
+
+      .activity-log {
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      .map-container {
+        position: relative;
+        overflow: hidden;
+      }
+
+      canvas { image-rendering: crisp-edges; }
+    </style>
+  </head>
+  <body>
+    <!-- TOP BAR -->
+    <div class="border-b border-[#3a2f22] bg-[#0a0806]">
+      <div class="max-w-[1400px] mx-auto px-6 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-x-4">
+          <div class="flex items-center gap-x-3">
+            <div class="w-9 h-9 rounded bg-gradient-to-br from-[#c5a26f] to-[#8b5e3c] flex items-center justify-center text-[#0a0806] font-black text-xl tracking-[-1px]">GW</div>
+            <div>
+              <div class="cinzel text-2xl tracking-[1.5px] font-bold">GRUDGE WARLORDS</div>
+              <div class="text-[10px] text-[#8a7660] -mt-1">ISLAND COMMAND</div>
+            </div>
+          </div>
+          <div class="px-3 py-1 rounded bg-[#1f1a15] text-xs font-medium flex items-center gap-x-2 border border-[#3a2f22]">
+            <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+            <span class="text-[#c5a26f]">MYSTVEIL ISLE</span>
+            <span class="text-[#8a7660]">— owned • sovereign</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-x-4 text-sm">
+          <!-- Grudge ID -->
+          <div id="auth-bar" class="flex items-center gap-x-2 text-xs">
+            <span id="auth-status" class="px-2.5 py-1 bg-[#1f1a15] rounded border border-[#3a2f22] text-[#8a7660]">Not linked</span>
+            <button onclick="openGrudgeSSO()" 
+                    class="px-3 py-1 bg-[#3a2f22] hover:bg-[#4a3a2a] active:bg-[#c5a26f] active:text-[#0a0806] rounded text-[#c5a26f] border border-[#3a2f22] transition">Link Grudge ID</button>
+          </div>
+
+          <div class="text-[#8a7660] text-xs">2D authoritative mirror of 3D island</div>
+          <button onclick="exportFor3D()" 
+                  class="text-xs px-3 py-1.5 border border-[#c5a26f] hover:bg-[#c5a26f] hover:text-[#0a0806] rounded transition font-medium">EXPORT FOR 3D</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-[1400px] mx-auto p-6">
+      <div class="flex gap-6">
+        
+        <!-- LEFT: PALETTE + CONTROLS -->
+        <div class="w-72 shrink-0 space-y-4">
+          <div class="panel rounded-xl p-4">
+            <div class="cinzel text-sm tracking-widest mb-3 text-[#c5a26f]">PLACE NODES</div>
+            <div class="text-[10px] text-[#8a7660] mb-3">Nodes snap to valid terrain &amp; ownership zones only.</div>
+
+            <div id="palette" class="grid grid-cols-2 gap-2"></div>
+          </div>
+
+          <div class="panel rounded-xl p-4 space-y-3">
+            <div class="cinzel text-sm tracking-widest text-[#c5a26f]">LAYERS</div>
+            
+            <div class="space-y-1.5 text-sm">
+              <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="layer-structures" checked onchange="renderMap()"> <span>Structures</span></label>
+              <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="layer-resources" checked onchange="renderMap()"> <span>Resources</span></label>
+              <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="layer-units" checked onchange="renderMap()"> <span>Live Units &amp; Patrols</span></label>
+              <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="layer-zones" checked onchange="renderMap()"> <span>Build / Claim Zones</span></label>
+              <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" id="layer-paths" checked onchange="renderMap()"> <span>Paths &amp; Supply</span></label>
+            </div>
+          </div>
+
+          <div class="panel rounded-xl p-4">
+            <div class="cinzel text-sm tracking-widest text-[#c5a26f] mb-2">SIMULATION</div>
+            <div class="flex gap-2">
+              <button onclick="toggleSimulation()" id="sim-btn"
+                      class="flex-1 px-3 py-2 bg-emerald-900/70 hover:bg-emerald-800 border border-emerald-700 text-sm rounded">▶ PLAY SIM</button>
+              <button onclick="simulationTick()" 
+                      class="px-3 py-2 bg-[#1f1a15] border border-[#3a2f22] hover:border-[#c5a26f] text-sm rounded">TICK</button>
+            </div>
+            <div class="mt-2 text-[10px] text-[#8a7660]">Units patrol. Resources produce. Events fire.</div>
+          </div>
+
+          <div class="panel rounded-xl p-4 text-xs space-y-2">
+            <div class="flex justify-between text-[#8a7660]">
+              <div>ISLAND SEED</div><div id="island-seed" class="font-mono text-[#c5a26f]">MV-4821</div>
+            </div>
+            <button onclick="loadDemoIsland()" class="w-full text-center py-1.5 text-xs border border-[#3a2f22] hover:bg-[#1f1a15] rounded">LOAD DEMO ISLAND</button>
+            <button onclick="clearAllNodes()" class="w-full text-center py-1.5 text-xs border border-[#3a2f22] hover:bg-red-950/60 rounded">CLEAR NODES</button>
+          </div>
+        </div>
+
+        <!-- CENTER: THE MAP -->
+        <div class="flex-1">
+          <div class="flex items-baseline justify-between mb-2 px-1">
+            <div>
+              <span class="cinzel text-xl tracking-[1px]">MYSTVEIL ISLE</span>
+              <span class="ml-3 text-xs px-2 py-0.5 rounded bg-[#1f1a15] border border-[#3a2f22]">SOVEREIGN • TIER 4</span>
+            </div>
+            <div class="text-xs text-[#8a7660]">Top-down authoritative view • mirrors 3D geometry &amp; build mask</div>
+          </div>
+
+          <div class="map-container rounded-2xl overflow-hidden border border-[#3a2f22] bg-[#0c0a08]" style="box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);">
+            <canvas id="minimap" width="960" height="720"></canvas>
+          </div>
+
+          <div class="flex justify-between items-center mt-2 px-1 text-[10px] text-[#8a7660]">
+            <div>
+              DRAG TO PAN • SCROLL TO ZOOM • DRAG NODES TO REPOSITION (snaps to allowed) • CLICK PALETTE THEN MAP TO PLACE
+            </div>
+            <div id="coords" class="font-mono tabular-nums"></div>
+          </div>
+        </div>
+
+        <!-- RIGHT: INSPECTOR + ACTIVITY -->
+        <div class="w-80 shrink-0 space-y-4">
+          <div class="panel rounded-xl p-4" id="inspector">
+            <div class="cinzel text-sm tracking-widest text-[#c5a26f] mb-3">SELECTED NODE</div>
+            <div id="inspector-content">
+              <div class="text-[#8a7660] text-sm">Click a node on the map or place a new one.</div>
+            </div>
+          </div>
+
+          <div class="panel rounded-xl p-4">
+            <div class="cinzel text-sm tracking-widest text-[#c5a26f] mb-2 flex items-center justify-between">
+              <span>LIVE ACTIVITY</span>
+              <button onclick="clearLog()" class="text-[10px] text-[#8a7660] hover:text-white">clear</button>
+            </div>
+            <div id="activity-log" class="activity-log h-[210px] overflow-y-auto pr-1 space-y-1 text-[#c5a26f]/90"></div>
+          </div>
+
+          <div class="panel rounded-xl p-4 text-xs">
+            <div class="cinzel text-sm tracking-widest mb-1.5 text-[#c5a26f]">MIRROR RULES</div>
+            <ul class="text-[#8a7660] space-y-1 list-disc pl-4">
+              <li>Nodes can only exist in the same buildable zones as the 3D island.</li>
+              <li>Strongholds &amp; Towers require clear high-ground.</li>
+              <li>Resources locked to matching terrain type.</li>
+              <li>Supply paths follow walkable land.</li>
+              <li>Changes here are the source of truth for the 3D island.</li>
+            </ul>
+            <div class="mt-3 pt-3 border-t border-[#3a2f22] text-[10px]">
+              Position data is exportable to the Grudge Warlords 3D engine and GrudgeBuilder.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+      // Tailwind script
+      function initTailwind() {
+        document.documentElement.style.setProperty('--accent', '#8b5e3c');
+      }
+
+      // === GRUDGE AUTH (same pattern as launcher + Nexus + GCS) ===
+      let grudgeAuth = null;
+
+      (function consumeGrudgeAuth() {
+        try {
+          const sp = new URLSearchParams(location.search);
+          const hs = new URLSearchParams((location.hash || '').replace(/^#/, ''));
+          const token = sp.get('grudge_token') || sp.get('token') || hs.get('grudge_token') || hs.get('token');
+          if (token) {
+            localStorage.setItem('grudge_auth_token', token);
+            localStorage.setItem('access_token', token);
+            const gid = sp.get('grudgeId') || hs.get('grudgeId') || sp.get('gid') || '';
+            if (gid) localStorage.setItem('grudge_id', gid);
+            const name = sp.get('name') || hs.get('username') || 'Warlord';
+            localStorage.setItem('grudge_username', name);
+            window.history.replaceState(null, '', location.pathname);
+          }
+        } catch(e){}
+      })();
+
+      if (typeof window !== 'undefined' && !window.__grudgeSsoListenerInstalled) {
+        window.__grudgeSsoListenerInstalled = true;
+        window.addEventListener('message', function(ev) {
+          const d = ev.data || {};
+          if ((d.type === 'grudge:auth:success' || d.type === 'grudge-auth:success') && d.token) {
+            localStorage.setItem('grudge_auth_token', d.token);
+            localStorage.setItem('access_token', d.token);
+            const u = d.user || {};
+            if (u.grudgeId) localStorage.setItem('grudge_id', u.grudgeId);
+            if (u.username) localStorage.setItem('grudge_username', u.username);
+            updateAuthUI();
+            logActivity('Grudge ID linked via Hydra SSO.');
+            try { if (window.__grudgePopup) window.__grudgePopup.close(); } catch(e){}
+          }
+        });
+      }
+
+      function getGrudgeToken() {
+        return localStorage.getItem('grudge_auth_token') || localStorage.getItem('access_token');
+      }
+
+      function updateAuthUI() {
+        const statusEl = document.getElementById('auth-status');
+        const token = getGrudgeToken();
+        const gid = localStorage.getItem('grudge_id');
+        if (token) {
+          statusEl.innerHTML = gid ? `Grudge #${gid.slice(0,6)}` : 'Grudge ID linked';
+          statusEl.className = 'px-2.5 py-1 bg-emerald-900/60 text-emerald-300 rounded border border-emerald-800';
+        } else {
+          statusEl.innerHTML = 'Not linked';
+          statusEl.className = 'px-2.5 py-1 bg-[#1f1a15] rounded border border-[#3a2f22] text-[#8a7660]';
+        }
+      }
+
+      function openGrudgeSSO() {
+        const authBase = 'https://id.grudge-studio.com';
+        const url = `${authBase}/api/auth/page?app=grudge-warlords-minimap&audience=island-command`;
+        const popup = window.open(url, 'grudge-sso', 'width=460,height=680');
+        window.__grudgePopup = popup;
+        setTimeout(() => {
+          try { popup && popup.postMessage({ type: 'grudge-auth:init' }, authBase); } catch(e){}
+        }, 500);
+      }
+
+      // === ISLAND DATA MODEL ===
+      let nodes = [];
+      let nextId = 1;
+      let currentPlaceType = null;
+
+      const NODE_TYPES = {
+        stronghold: { label: 'Stronghold', color: '#c5a26f', icon: '🏰', category: 'structure', allowed: ['high', 'grass'] },
+        watchtower: { label: 'Watchtower', color: '#8b9a7a', icon: '🗼', category: 'structure', allowed: ['high', 'grass', 'rock'] },
+        lumber:     { label: 'Lumber Camp', color: '#5c7a4f', icon: '🪵', category: 'resource', allowed: ['forest'] },
+        quarry:     { label: 'Quarry', color: '#6b6b6b', icon: '⛏', category: 'resource', allowed: ['rock'] },
+        farm:       { label: 'Farmstead', color: '#a68b55', icon: '🌾', category: 'resource', allowed: ['grass'] },
+        harbor:     { label: 'Harbor', color: '#4a7a8f', icon: '⚓', category: 'structure', allowed: ['coast'] },
+        hero:       { label: 'Hero', color: '#d4af77', icon: '⚔', category: 'unit', allowed: ['grass', 'high', 'forest'] },
+        patrol:     { label: 'Patrol', color: '#9a8a6f', icon: '🛡', category: 'unit', allowed: ['grass', 'high'] },
+        cache:      { label: 'Supply Cache', color: '#7a6648', icon: '📦', category: 'resource', allowed: ['grass', 'high'] },
+      };
+
+      // Island world bounds
+      const WORLD_W = 960;
+      const WORLD_H = 720;
+
+      // Allowed zones (polygons + special rules)
+      const ZONES = {
+        highGround: [
+          {x: 380, y: 210}, {x: 520, y: 180}, {x: 610, y: 260}, {x: 570, y: 340}, {x: 430, y: 320}
+        ],
+        grass: [
+          {x: 280, y: 300}, {x: 650, y: 280}, {x: 700, y: 460}, {x: 300, y: 470}
+        ],
+        forest: [
+          {x: 180, y: 240}, {x: 280, y: 210}, {x: 310, y: 360}, {x: 190, y: 370}
+        ],
+        coast: [ // near water edge
+          {x: 120, y: 420}, {x: 240, y: 540}, {x: 360, y: 530}, {x: 180, y: 430}
+        ],
+        rock: [
+          {x: 680, y: 190}, {x: 760, y: 250}, {x: 740, y: 330}, {x: 660, y: 280}
+        ]
+      };
+
+      // Simple point in polygon
+      function pointInPoly(pt, poly) {
+        let inside = false;
+        for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+          const xi = poly[i].x, yi = poly[i].y;
+          const xj = poly[j].x, yj = poly[j].y;
+          const intersect = ((yi > pt.y) !== (yj > pt.y)) && (pt.x < (xj - xi) * (pt.y - yi) / (yj - yi) + xi);
+          if (intersect) inside = !inside;
+        }
+        return inside;
+      }
+
+      function getTerrainAt(x, y) {
+        // Simple heuristic based on zones + distance to "center"
+        const cx = 480, cy = 340;
+        const dist = Math.hypot(x - cx, y - cy);
+
+        // Water ring
+        if (dist > 380) return 'water';
+
+        if (pointInPoly({x,y}, ZONES.highGround)) return 'high';
+        if (pointInPoly({x,y}, ZONES.rock)) return 'rock';
+        if (pointInPoly({x,y}, ZONES.forest)) return 'forest';
+        if (pointInPoly({x,y}, ZONES.coast)) return 'coast';
+        if (pointInPoly({x,y}, ZONES.grass)) return 'grass';
+
+        // Fallbacks
+        if (dist < 120) return 'high';
+        if (dist > 310) return 'coast';
+        return 'grass';
+      }
+
+      function isPositionAllowed(x, y, typeKey) {
+        const terrain = getTerrainAt(x, y);
+        if (terrain === 'water') return false;
+
+        const def = NODE_TYPES[typeKey];
+        if (!def) return false;
+
+        // Hard rules
+        if (typeKey === 'harbor' && terrain !== 'coast') return false;
+        if ((typeKey === 'lumber') && terrain !== 'forest') return false;
+        if ((typeKey === 'quarry') && terrain !== 'rock') return false;
+        if (typeKey === 'farm' && terrain !== 'grass') return false;
+
+        if (def.allowed.includes(terrain)) return true;
+
+        // Stronghold & watchtowers prefer high ground
+        if ((typeKey === 'stronghold' || typeKey === 'watchtower') && terrain === 'high') return true;
+
+        // Units + caches can be almost anywhere on land
+        if (def.category === 'unit' || typeKey === 'cache') return terrain !== 'water';
+
+        return def.allowed.includes('grass');
+      }
+
+      // Snap position to nearest allowed point
+      function findValidPosition(x, y, typeKey, attempts = 24) {
+        if (isPositionAllowed(x, y, typeKey)) return {x, y};
+
+        let best = null;
+        let bestDist = Infinity;
+
+        const step = 18;
+        for (let i = 0; i < attempts; i++) {
+          const angle = (i / attempts) * Math.PI * 2;
+          const rad = (i * 1.6) + 8;
+          const tx = x + Math.cos(angle) * rad;
+          const ty = y + Math.sin(angle) * rad;
+
+          if (isPositionAllowed(tx, ty, typeKey)) {
+            const d = Math.hypot(tx - x, ty - y);
+            if (d < bestDist) {
+              bestDist = d;
+              best = {x: tx, y: ty};
+            }
+          }
+        }
+
+        // Last resort: move inward toward island center
+        if (!best) {
+          const cx = 480, cy = 340;
+          let tx = x, ty = y;
+          for (let i = 0; i < 40; i++) {
+            tx += (cx - tx) * 0.12;
+            ty += (cy - ty) * 0.12;
+            if (isPositionAllowed(tx, ty, typeKey)) return {x: tx, y: ty};
+          }
+          return {x: cx, y: cy};
+        }
+        return best;
+      }
+
+      // === CANVAS + VIEWPORT STATE ===
+      let canvas, ctx;
+      let view = { x: 0, y: 0, scale: 1.0 };
+      let isDragging = false;
+      let lastMouse = {x:0, y:0};
+      let draggedNodeId = null;
+      let selectedNodeId = null;
+
+      let simRunning = false;
+      let simInterval = null;
+
+      function worldToScreen(wx, wy) {
+        return {
+          x: (wx + view.x) * view.scale,
+          y: (wy + view.y) * view.scale
+        };
+      }
+      function screenToWorld(sx, sy) {
+        return {
+          x: (sx / view.scale) - view.x,
+          y: (sy / view.scale) - view.y
+        };
+      }
+
+      function initCanvas() {
+        canvas = document.getElementById('minimap');
+        ctx = canvas.getContext('2d', { alpha: true });
+
+        // Mouse handlers
+        canvas.addEventListener('mousedown', onMouseDown);
+        canvas.addEventListener('mousemove', onMouseMove);
+        canvas.addEventListener('mouseup', onMouseUp);
+        canvas.addEventListener('mouseleave', onMouseUp);
+        canvas.addEventListener('wheel', onWheel, { passive: false });
+
+        // Touch support
+        canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+        canvas.addEventListener('touchmove', onTouchMove, { passive: false });
+        canvas.addEventListener('touchend', onTouchEnd);
+
+        // Coord display
+        canvas.addEventListener('mousemove', (e) => {
+          const rect = canvas.getBoundingClientRect();
+          const world = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+          document.getElementById('coords').textContent = `${Math.floor(world.x)}, ${Math.floor(world.y)}`;
+        });
+
+        window.addEventListener('resize', renderMap); // simple
+      }
+
+      // === DRAWING THE ISLAND (stylized top-down mirror of 3D) ===
+      function drawIslandBase() {
+        const w = canvas.width;
+        const h = canvas.height;
+
+        // Deep ocean
+        ctx.fillStyle = '#0b1f2a';
+        ctx.fillRect(0, 0, w, h);
+
+        // Main island body (organic shape)
+        ctx.save();
+        
+        // Sand / coast
+        ctx.fillStyle = '#c9b38a';
+        ctx.beginPath();
+        ctx.ellipse(490, 355, 365, 275, 0.15, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Grass base layer
+        ctx.fillStyle = '#3f5133';
+        ctx.beginPath();
+        ctx.ellipse(485, 345, 310, 225, -0.08, 0, Math.PI * 2);
+        ctx.fill();
+
+        // High ground / central plateau
+        ctx.fillStyle = '#4e3f2e';
+        ctx.beginPath();
+        ctx.ellipse(470, 300, 145, 105, 0.3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Forest patches
+        ctx.fillStyle = '#26381f';
+        ctx.beginPath(); ctx.ellipse(240, 265, 78, 92, -0.6, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(270, 380, 55, 75, 0.4, 0, Math.PI*2); ctx.fill();
+
+        // Rocky outcrop
+        ctx.fillStyle = '#3f3b35';
+        ctx.beginPath(); ctx.ellipse(710, 235, 68, 52, 1.1, 0, Math.PI*2); ctx.fill();
+
+        // Beach detail / coast line
+        ctx.strokeStyle = '#a88b5e';
+        ctx.lineWidth = 22;
+        ctx.beginPath();
+        ctx.ellipse(490, 355, 365, 275, 0.15, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Water edge highlight
+        ctx.strokeStyle = '#1e3a4a';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.ellipse(490, 355, 365, 275, 0.15, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.restore();
+
+        // Subtle grid
+        ctx.strokeStyle = 'rgba(120,100,70,0.08)';
+        ctx.lineWidth = 1;
+        for (let gx = 40; gx < w; gx += 40) {
+          ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, h); ctx.stroke();
+        }
+        for (let gy = 40; gy < h; gy += 40) {
+          ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(w, gy); ctx.stroke();
+        }
+      }
+
+      function drawZones() {
+        if (!document.getElementById('layer-zones').checked) return;
+
+        ctx.save();
+        ctx.globalAlpha = 0.25;
+
+        // High ground zone
+        ctx.fillStyle = '#c5a26f';
+        ctx.beginPath();
+        ZONES.highGround.forEach((p,i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.closePath(); ctx.fill();
+
+        // Grass
+        ctx.fillStyle = '#5a6f46';
+        ctx.beginPath();
+        ZONES.grass.forEach((p,i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.closePath(); ctx.fill();
+
+        // Forest
+        ctx.fillStyle = '#2f4623';
+        ctx.beginPath();
+        ZONES.forest.forEach((p,i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
+        ctx.closePath(); ctx.fill();
+
+        ctx.restore();
+      }
+
+      function drawPaths() {
+        if (!document.getElementById('layer-paths').checked) return;
+        ctx.strokeStyle = '#5f523f';
+        ctx.lineWidth = 3.5;
+        ctx.lineJoin = 'round';
+
+        // Main path network
+        ctx.beginPath();
+        ctx.moveTo(310, 390);
+        ctx.quadraticCurveTo(420, 330, 510, 295);
+        ctx.quadraticCurveTo(620, 250, 710, 280);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(340, 420);
+        ctx.quadraticCurveTo(420, 470, 510, 460);
+        ctx.stroke();
+      }
+
+      function drawNode(node) {
+        const def = NODE_TYPES[node.type];
+        if (!def) return;
+
+        const layerOn = getLayerForType(node.type);
+        if (!layerOn) return;
+
+        const screen = worldToScreen(node.x, node.y);
+        const r = node.type === 'stronghold' ? 18 : (node.type === 'hero' ? 12 : 9);
+
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        ctx.beginPath();
+        ctx.ellipse(screen.x + 3, screen.y + 4, r * 0.9, r * 0.55, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Main body
+        ctx.fillStyle = def.color;
+        ctx.strokeStyle = '#0a0806';
+        ctx.lineWidth = 2.5;
+
+        ctx.beginPath();
+        ctx.arc(screen.x, screen.y, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Icon / label inside
+        ctx.fillStyle = '#0a0806';
+        ctx.font = node.type === 'stronghold' ? 'bold 14px sans-serif' : '12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(def.icon, screen.x, screen.y - 1);
+
+        // Selection ring
+        if (node.id === selectedNodeId) {
+          ctx.strokeStyle = '#c5a26f';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(screen.x, screen.y, r + 7, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        // Status ring for units
+        if (node.type === 'patrol' || node.type === 'hero') {
+          ctx.strokeStyle = '#e8dcc8';
+          ctx.lineWidth = 1.5;
+          ctx.globalAlpha = 0.6 + Math.sin(Date.now() / 220) * 0.3;
+          ctx.beginPath();
+          ctx.arc(screen.x, screen.y, r + 4, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        }
+
+        // Name label
+        if (node.label) {
+          ctx.font = '10px Inter, system-ui';
+          ctx.fillStyle = 'rgba(10,8,6,0.75)';
+          const tw = ctx.measureText(node.label).width;
+          ctx.fillRect(screen.x - tw/2 - 3, screen.y + r + 4, tw + 6, 13);
+          ctx.fillStyle = '#e8dcc8';
+          ctx.fillText(node.label, screen.x, screen.y + r + 13);
+        }
+      }
+
+      function getLayerForType(type) {
+        const cat = NODE_TYPES[type]?.category;
+        if (cat === 'structure') return document.getElementById('layer-structures').checked;
+        if (cat === 'resource') return document.getElementById('layer-resources').checked;
+        if (cat === 'unit') return document.getElementById('layer-units').checked;
+        return true;
+      }
+
+      function renderMap() {
+        if (!ctx) return;
+
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Apply view transform
+        ctx.translate(view.x * view.scale, view.y * view.scale);
+        ctx.scale(view.scale, view.scale);
+
+        // Draw base island
+        drawIslandBase();
+        drawZones();
+        drawPaths();
+
+        // Draw nodes
+        for (const node of nodes) {
+          drawNode(node);
+        }
+
+        // Current place ghost
+        if (currentPlaceType && lastMouseWorld) {
+          const allowed = isPositionAllowed(lastMouseWorld.x, lastMouseWorld.y, currentPlaceType);
+          const screen = worldToScreen(lastMouseWorld.x, lastMouseWorld.y);
+          ctx.strokeStyle = allowed ? '#c5a26f' : '#8b3c3c';
+          ctx.lineWidth = 2 / view.scale;
+          ctx.beginPath();
+          ctx.arc(screen.x, screen.y, 14, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.fillStyle = allowed ? 'rgba(197,162,111,0.25)' : 'rgba(140,50,50,0.25)';
+          ctx.beginPath();
+          ctx.arc(screen.x, screen.y, 14, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        ctx.restore();
+      }
+
+      let lastMouseWorld = null;
+
+      // === INTERACTION ===
+      function onMouseDown(e) {
+        const rect = canvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left;
+        const sy = e.clientY - rect.top;
+        const world = screenToWorld(sx, sy);
+        lastMouse = {x: sx, y: sy};
+
+        // Check if clicking an existing node
+        const clicked = findNodeAt(world.x, world.y);
+        if (clicked) {
+          if (currentPlaceType) {
+            currentPlaceType = null;
+            updatePaletteUI();
+          }
+          selectedNodeId = clicked.id;
+          draggedNodeId = clicked.id;
+          isDragging = true;
+          updateInspector();
+        } else if (currentPlaceType) {
+          // Place new node
+          const valid = findValidPosition(world.x, world.y, currentPlaceType);
+          placeNode(currentPlaceType, valid.x, valid.y);
+          // keep place tool active
+          renderMap();
+        } else {
+          // Start panning
+          isDragging = true;
+          draggedNodeId = null;
+        }
+      }
+
+      function onMouseMove(e) {
+        const rect = canvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left;
+        const sy = e.clientY - rect.top;
+        const world = screenToWorld(sx, sy);
+        lastMouseWorld = world;
+
+        if (!isDragging) {
+          renderMap(); // for ghost
+          return;
+        }
+
+        if (draggedNodeId) {
+          // Drag a node — always constrain
+          const node = nodes.find(n => n.id === draggedNodeId);
+          if (node) {
+            const valid = findValidPosition(world.x, world.y, node.type);
+            node.x = valid.x;
+            node.y = valid.y;
+          }
+          renderMap();
+          updateInspector();
+        } else {
+          // Pan
+          view.x += (sx - lastMouse.x) / view.scale;
+          view.y += (sy - lastMouse.y) / view.scale;
+          lastMouse = {x: sx, y: sy};
+          renderMap();
+        }
+      }
+
+      function onMouseUp() {
+        if (draggedNodeId) {
+          // Final validation
+          const node = nodes.find(n => n.id === draggedNodeId);
+          if (node) {
+            const v = findValidPosition(node.x, node.y, node.type);
+            node.x = v.x; node.y = v.y;
+          }
+        }
+        isDragging = false;
+        draggedNodeId = null;
+        renderMap();
+      }
+
+      function onWheel(e) {
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const sx = e.clientX - rect.left;
+        const sy = e.clientY - rect.top;
+
+        const before = screenToWorld(sx, sy);
+        const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+        view.scale = Math.max(0.4, Math.min(3.2, view.scale * factor));
+        const after = screenToWorld(sx, sy);
+
+        view.x += (after.x - before.x);
+        view.y += (after.y - before.y);
+
+        renderMap();
+      }
+
+      // Touch handlers (basic)
+      function onTouchStart(e) {
+        if (e.touches.length === 1) {
+          const t = e.touches[0];
+          const rect = canvas.getBoundingClientRect();
+          onMouseDown({ clientX: t.clientX, clientY: t.clientY });
+        }
+      }
+      function onTouchMove(e) {
+        if (e.touches.length === 1) {
+          const t = e.touches[0];
+          const rect = canvas.getBoundingClientRect();
+          onMouseMove({ clientX: t.clientX, clientY: t.clientY });
+        }
+      }
+      function onTouchEnd() { onMouseUp(); }
+
+      function findNodeAt(wx, wy) {
+        for (let i = nodes.length - 1; i >= 0; i--) {
+          const n = nodes[i];
+          const d = Math.hypot(n.x - wx, n.y - wy);
+          const hitRadius = (n.type === 'stronghold' ? 26 : 18);
+          if (d < hitRadius) return n;
+        }
+        return null;
+      }
+
+      // === PLACEMENT + DATA OPS ===
+      function placeNode(type, x, y) {
+        const valid = findValidPosition(x, y, type);
+        const def = NODE_TYPES[type];
+        const node = {
+          id: 'n' + (nextId++),
+          type,
+          x: valid.x,
+          y: valid.y,
+          label: def.label.split(' ')[0],
+          created: Date.now()
+        };
+        nodes.push(node);
+        selectedNodeId = node.id;
+        logActivity(`Placed ${def.label}`);
+        renderMap();
+        updateInspector();
+      }
+
+      function deleteSelected() {
+        if (!selectedNodeId) return;
+        nodes = nodes.filter(n => n.id !== selectedNodeId);
+        selectedNodeId = null;
+        renderMap();
+        updateInspector();
+        logActivity('Node removed');
+      }
+
+      function updatePaletteUI() {
+        const container = document.getElementById('palette');
+        container.innerHTML = '';
+
+        Object.entries(NODE_TYPES).forEach(([key, def]) => {
+          const btn = document.createElement('button');
+          btn.className = `palette-btn flex items-center gap-2 px-3 py-2 text-left text-xs border rounded-lg bg-[#1a1713] border-[#3a2f22] hover:border-[#c5a26f] ${currentPlaceType === key ? 'active border-[#c5a26f]' : ''}`;
+          btn.innerHTML = `
+            <span class="text-xl">${def.icon}</span>
+            <div class="flex-1">
+              <div class="font-medium">${def.label}</div>
+              <div class="text-[9px] text-[#8a7660]">${def.category}</div>
+            </div>
+          `;
+          btn.onclick = () => {
+            currentPlaceType = (currentPlaceType === key) ? null : key;
+            updatePaletteUI();
+            if (currentPlaceType) logActivity(`Click map to place ${def.label}`);
+          };
+          container.appendChild(btn);
+        });
+      }
+
+      function updateInspector() {
+        const el = document.getElementById('inspector-content');
+        const node = nodes.find(n => n.id === selectedNodeId);
+
+        if (!node) {
+          el.innerHTML = `<div class="text-[#8a7660] text-sm">Click a node on the map or place a new one.</div>`;
+          return;
+        }
+
+        const def = NODE_TYPES[node.type];
+        const terrain = getTerrainAt(node.x, node.y);
+
+        el.innerHTML = `
+          <div class="flex items-center gap-3 mb-3">
+            <div class="text-3xl">${def.icon}</div>
+            <div>
+              <div class="font-semibold text-base">${def.label}</div>
+              <div class="text-xs text-[#8a7660]">${node.label || ''} • ${terrain.toUpperCase()}</div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-xs mb-3">
+            <div class="text-[#8a7660]">X</div><div class="font-mono">${Math.round(node.x)}</div>
+            <div class="text-[#8a7660]">Y</div><div class="font-mono">${Math.round(node.y)}</div>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="deleteSelected()" class="flex-1 py-1 text-xs border border-red-900/60 hover:bg-red-900/30 rounded">DELETE</button>
+            <button onclick="moveSelectedToCenter()" class="flex-1 py-1 text-xs border border-[#3a2f22] hover:bg-[#1f1a15] rounded">CENTER</button>
+          </div>
+        `;
+      }
+
+      function moveSelectedToCenter() {
+        const node = nodes.find(n => n.id === selectedNodeId);
+        if (!node) return;
+        const v = findValidPosition(480, 340, node.type);
+        node.x = v.x; node.y = v.y;
+        renderMap();
+        updateInspector();
+      }
+
+      // === SIMULATION ===
+      function simulationTick() {
+        let changed = false;
+
+        nodes.forEach(node => {
+          const def = NODE_TYPES[node.type];
+
+          // Patrols and heroes move toward strategic points
+          if ((node.type === 'patrol' || node.type === 'hero') && Math.random() > 0.35) {
+            // Find a good target node (stronghold, harbor, or random resource)
+            let targets = nodes.filter(n => ['stronghold', 'harbor', 'watchtower'].includes(n.type));
+            if (targets.length === 0) targets = nodes.filter(n => n.type !== 'patrol');
+
+            if (targets.length) {
+              const target = targets[Math.floor(Math.random() * targets.length)];
+              const dx = target.x - node.x;
+              const dy = target.y - node.y;
+              const dist = Math.hypot(dx, dy) || 1;
+
+              let nx = node.x + (dx / dist) * 26;
+              let ny = node.y + (dy / dist) * 26;
+
+              const valid = findValidPosition(nx, ny, node.type);
+              node.x = valid.x;
+              node.y = valid.y;
+              changed = true;
+            }
+          }
+
+          // Occasional events on resources
+          if (def.category === 'resource' && Math.random() < 0.08) {
+            logActivity(`${def.label} produced supplies`, true);
+            changed = true;
+          }
+        });
+
+        // Random world event
+        if (Math.random() < 0.12) {
+          const events = [
+            'Patrol spotted movement on the ridge',
+            'Supply caravan arrived at the harbor',
+            'A mine vein was struck — +ore',
+            'Forest fire started — lumber at risk'
+          ];
+          logActivity(events[Math.floor(Math.random()*events.length)]);
+        }
+
+        if (changed || Math.random() < 0.5) renderMap();
+      }
+
+      function toggleSimulation() {
+        simRunning = !simRunning;
+        const btn = document.getElementById('sim-btn');
+        if (simRunning) {
+          btn.textContent = '⏸ PAUSE SIM';
+          btn.classList.add('!bg-amber-900/70', '!border-amber-700');
+          if (!simInterval) simInterval = setInterval(() => {
+            simulationTick();
+          }, 820);
+          logActivity('Simulation started');
+        } else {
+          btn.textContent = '▶ PLAY SIM';
+          btn.classList.remove('!bg-amber-900/70', '!border-amber-700');
+          if (simInterval) { clearInterval(simInterval); simInterval = null; }
+          logActivity('Simulation paused');
+        }
+      }
+
+      // === LOGGING ===
+      function logActivity(msg, quiet = false) {
+        const container = document.getElementById('activity-log');
+        const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        const div = document.createElement('div');
+        div.className = 'flex gap-2 text-[11px]';
+        div.innerHTML = `<span class="text-[#6b5842] font-mono shrink-0">${time}</span><span>${msg}</span>`;
+        container.appendChild(div);
+        container.scrollTop = container.scrollHeight;
+
+        // Auto-trim
+        while (container.children.length > 14) container.removeChild(container.firstChild);
+
+        if (!quiet && Math.random() < 0.6) {
+          // Occasionally trigger a tiny visual ping on map
+          renderMap();
+        }
+      }
+
+      function clearLog() {
+        document.getElementById('activity-log').innerHTML = '';
+      }
+
+      // === DATA OPERATIONS ===
+      function loadDemoIsland() {
+        nodes = [];
+        nextId = 1;
+
+        // Central stronghold (high ground)
+        nodes.push({id: 'n'+(nextId++), type:'stronghold', x: 470, y: 295, label:'Keep'});
+
+        // Watchtowers
+        nodes.push({id:'n'+(nextId++), type:'watchtower', x: 390, y: 235, label:'North'});
+        nodes.push({id:'n'+(nextId++), type:'watchtower', x: 620, y: 310, label:'East'});
+
+        // Resources
+        nodes.push({id:'n'+(nextId++), type:'lumber', x: 235, y: 295, label:'Grove'});
+        nodes.push({id:'n'+(nextId++), type:'quarry', x: 700, y: 250, label:'Vein'});
+        nodes.push({id:'n'+(nextId++), type:'farm', x: 355, y: 430, label:'Fields'});
+        nodes.push({id:'n'+(nextId++), type:'harbor', x: 195, y: 475, label:'Dock'});
+
+        // Units
+        nodes.push({id:'n'+(nextId++), type:'hero', x: 455, y: 355, label:'You'});
+        nodes.push({id:'n'+(nextId++), type:'patrol', x: 510, y: 385, label:'1st'});
+        nodes.push({id:'n'+(nextId++), type:'patrol', x: 360, y: 270, label:'2nd'});
+
+        // Cache
+        nodes.push({id:'n'+(nextId++), type:'cache', x: 530, y: 330, label:'Stores'});
+
+        selectedNodeId = nodes[0].id;
+        view = { x: -80, y: -30, scale: 1.05 };
+
+        logActivity('Loaded Mystveil Isle demo layout');
+        renderMap();
+        updateInspector();
+      }
+
+      function clearAllNodes() {
+        if (!confirm('Clear every node from the island?')) return;
+        nodes = [];
+        selectedNodeId = null;
+        renderMap();
+        updateInspector();
+      }
+
+      function exportFor3D() {
+        const payload = {
+          island: 'Mystveil',
+          exportedAt: new Date().toISOString(),
+          grudgeId: localStorage.getItem('grudge_id') || null,
+          nodes: nodes.map(n => ({
+            type: n.type,
+            x: Math.round(n.x),
+            y: Math.round(n.y),
+            label: n.label
+          })),
+          note: 'Import this into Grudge Warlords 3D scene generator or GrudgeBuilder. Positions are validated against island mask.'
+        };
+
+        const blob = new Blob([JSON.stringify(payload, null, 2)], {type: 'application/json'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'mystveil-island-nodes.json';
+        a.click();
+
+        logActivity('Exported node data for 3D engine');
+      }
+
+      function saveToGrudge() {
+        const token = getGrudgeToken();
+        const data = { nodes, island: 'Mystveil', ts: Date.now() };
+        localStorage.setItem('grudge_island_mystveil', JSON.stringify(data));
+
+        if (token && window.puter) {
+          // Best effort Puter save
+          try {
+            window.puter.kv.set('grudgewarlords:island:mystveil', JSON.stringify(data));
+            logActivity('Saved island state to Grudge account (Puter KV)');
+          } catch(e) {
+            logActivity('Saved locally. Grudge sync queued.');
+          }
+        } else {
+          logActivity('Island state saved to this browser (local)');
+        }
+      }
+
+      function tryLoadSaved() {
+        try {
+          const saved = localStorage.getItem('grudge_island_mystveil');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed.nodes && parsed.nodes.length) {
+              nodes = parsed.nodes;
+              // Ensure ids are unique going forward
+              nextId = Math.max(...nodes.map(n => parseInt((n.id||'n0').replace('n','')) || 0)) + 10;
+              logActivity('Restored your saved island layout');
+              return true;
+            }
+          }
+        } catch(e){}
+        return false;
+      }
+
+      // === INIT ===
+      function initPaletteAndUI() {
+        updatePaletteUI();
+        updateAuthUI();
+
+        // Layer checkboxes default already set in HTML
+
+        // Keyboard support
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Delete' || e.key === 'Backspace') {
+            if (selectedNodeId) deleteSelected();
+          }
+          if (e.key.toLowerCase() === 's' && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            saveToGrudge();
+          }
+          if (e.key === 'Escape') {
+            currentPlaceType = null;
+            updatePaletteUI();
+          }
+        });
+
+        // Initial island
+        if (!tryLoadSaved()) {
+          loadDemoIsland();
+        } else {
+          renderMap();
+          updateInspector();
+        }
+
+        // Seed a couple live events
+        setTimeout(() => logActivity('Harbor reports clear waters'), 1400);
+        setTimeout(() => logActivity('Patrol 2nd completed circuit'), 2600);
+
+        // Gentle initial sim tick
+        setTimeout(() => { if (!simRunning) simulationTick(); }, 1800);
+      }
+
+      function initEverything() {
+        initTailwind();
+        initCanvas();
+        initPaletteAndUI();
+
+        // Make sure first render is correct
+        setTimeout(renderMap, 40);
+
+        // Expose a couple helpers for launcher / debugging
+        window.GW_MINIMAP = {
+          export: exportFor3D,
+          loadDemo: loadDemoIsland,
+          save: saveToGrudge,
+          getNodes: () => nodes
+        };
+
+        // Optional: auto-link if token already present in launcher context
+        if (getGrudgeToken()) updateAuthUI();
+
+        // Welcome
+        console.log('%c[Grudge Warlords] 2D Island Minimap ready — mirror of the 3D island with constrained placement.', 'color:#6b5842');
+      }
+
+      // Boot
+      window.onload = initEverything;
+    </script>
+  </body>
+</html>

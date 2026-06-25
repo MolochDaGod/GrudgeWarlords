@@ -204,7 +204,41 @@
         "armor": ["#4682b4"]
       },
       "icon": "./assets/icons/racalvin.png"
+    },
+    "vietnam-soldier": {
+      "id": "vietnam-soldier",
+      "name": "Vietnam Soldier",
+      "displayName": "Nexus Era Vietnam Grunt",
+      "description": "Nexus era open world operative. Uses real characters from grudge6.grudge-studio.com with mesh armours and weapons.",
+      "race": "Vietnam",
+      "class": "Rifleman",
+      "folder": "",
+      "subfolder": "",
+      "modelFile": "https://grudge6.grudge-studio.com/models/characters/vietnam/soldier.glb",
+      "animationFile": "",
+      "scale": 1.0,
+      "positionY": 0,
+      "stats": { "health": 110, "strength": 12, "dexterity": 14, "intelligence": 10, "vitality": 11, "speed": 1.0 },
+      "colors": { "skin": ["#d4a574"], "hair": ["#2b2b2b"], "armor": ["#3a5f3a", "#556b2f"] },
+      "icon": ""
+    },
+    "vietnam-ranger": {
+      "id": "vietnam-ranger",
+      "name": "Vietnam Ranger",
+      "displayName": "Nexus Era Ranger",
+      "description": "Nexus era open world scout. Grudge6 sourced character assets.",
+      "race": "Vietnam",
+      "class": "Scout",
+      "folder": "",
+      "subfolder": "",
+      "modelFile": "https://grudge6.grudge-studio.com/models/characters/vietnam/ranger.glb",
+      "animationFile": "",
+      "scale": 1.0,
+      "positionY": 0,
+      "stats": { "health": 100, "strength": 11, "dexterity": 16, "intelligence": 11, "vitality": 10, "speed": 1.15 },
+      "colors": { "skin": ["#d4a574"], "hair": ["#2b2b2b"], "armor": ["#2f4f2f"] },
+      "icon": ""
     }
   },
-  "defaultCharacter": "human"
+  "defaultCharacter": "vietnam-soldier"
 }

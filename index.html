@@ -1,0 +1,836 @@
+﻿<!DOCTYPE html>
+<html translate="no" lang="en" translate="no">
+<head>
+  <meta charset="UTF-8">
+    <meta name="google" content="notranslate" />
+    <script src="https://client.grudge-studio.com/grudge-game-bootstrap.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nexus Era Open World • Grudge Studio (Vietnam characters)</title>
+  <script src="https://js.puter.com/v2/"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Cinzel:wght@500;600&amp;display=swap');
+    
+    :root {
+      --bg: #0a0f1e;
+      --panel: #111827;
+      --accent: #f59e0b;
+    }
+    
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #0a0f1e;
+      color: #e2e8f0;
+      font-family: 'Inter', system-ui, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+    }
+    
+    .topbar {
+      height: 52px;
+      background: #0f172a;
+      border-bottom: 1px solid #1e2937;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 12px;
+      font-size: 13px;
+    }
+    
+    .tab {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .tab.active {
+      background: #1e2937;
+      color: #f59e0b;
+    }
+    
+    .level {
+      background: #1e2937;
+      padding: 2px 10px;
+      border-radius: 9999px;
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    
+    .return-btn {
+      background: #7c2d12;
+      color: #fed7aa;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+    }
+    
+    .view-toggle {
+      margin-left: auto;
+      display: flex;
+      background: #1e2937;
+      border-radius: 9999px;
+      padding: 2px;
+      font-size: 11px;
+    }
+    .view-toggle button {
+      padding: 4px 12px;
+      border: none;
+      background: transparent;
+      color: #64748b;
+      border-radius: 9999px;
+      cursor: pointer;
+    }
+    .view-toggle button.active {
+      background: #f59e0b;
+      color: #0f172a;
+      font-weight: 600;
+    }
+    
+    .main {
+      display: flex;
+      height: calc(100vh - 52px);
+    }
+    
+    .map-area {
+      flex: 1;
+      position: relative;
+      background: #02040a;
+      overflow: hidden;
+    }
+    
+    #world-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+    }
+    
+    .map-overlay {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .sidebar {
+      width: 280px;
+      background: #0f172a;
+      border-left: 1px solid #1e2937;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .comms {
+      flex: 1;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .comms-header {
+      font-size: 12px;
+      font-weight: 600;
+      color: #cbd5e1;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    
+    .comms-tabs {
+      display: flex;
+      margin-bottom: 8px;
+      border-bottom: 1px solid #1e2937;
+    }
+    .comms-tab {
+      padding: 4px 10px;
+      font-size: 11px;
+      color: #64748b;
+      cursor: pointer;
+    }
+    .comms-tab.active {
+      color: #f59e0b;
+      border-bottom: 2px solid #f59e0b;
+    }
+    
+    .hero-list {
+      flex: 1;
+      overflow-y: auto;
+      font-size: 12px;
+    }
+    
+    .hero-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 8px;
+      margin-bottom: 4px;
+      background: #1e2937;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .hero-row:hover { background: #334155; }
+    
+    .hero-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      flex-shrink: 0;
+    }
+    
+    .bottom-bar {
+      height: 36px;
+      background: #0f172a;
+      border-top: 1px solid #1e2937;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      font-size: 11px;
+      color: #64748b;
+      justify-content: space-between;
+    }
+    
+    .hero-chat-btn {
+      position: fixed;
+      bottom: 12px;
+      right: 12px;
+      background: #1e2937;
+      border: 1px solid #475569;
+      color: #f59e0b;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      z-index: 50;
+    }
+    
+    .legend {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 10px;
+      color: #64748b;
+      display: flex;
+      gap: 12px;
+    }
+    
+    .node-tooltip {
+      position: absolute;
+      background: #1e2937;
+      border: 1px solid #475569;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      pointer-events: none;
+      z-index: 100;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="level">Level 1</div>
+    
+    <div class="tab active"><i class="fas fa-home"></i> <span>Hub</span></div>
+    <div class="tab"><i class="fas fa-hammer"></i> <span>Build</span></div>
+    
+    <button class="return-btn" onclick="returnAllHeroes()">Return All</button>
+    
+    <div class="view-toggle">
+      <button class="active" id="btn-2d">2D Sprite</button>
+      <button onclick="switchTo3D()">3D World</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- MAP -->
+    <div class="map-area" id="map-container">
+      <canvas id="world-canvas" width="1200" height="800"></canvas>
+      
+      <div class="map-overlay">
+        <span><i class="fas fa-map"></i> Mystveil Isle</span>
+        <span style="color:#64748b">•</span>
+        <span id="node-count">12 nodes</span>
+      </div>
+      
+      <div class="legend">
+        <span><span style="color:#f59e0b">●</span> Heroes</span>
+        <span><span style="color:#22c55e">●</span> Resources</span>
+        <span><span style="color:#a78bfa">●</span> Structures</span>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDEBAR -->
+    <div class="sidebar">
+      <div class="comms">
+        <div class="comms-header">
+          <i class="fas fa-comments"></i> Communications
+        </div>
+        
+        <div class="comms-tabs">
+          <div class="comms-tab active" onclick="switchCommsTab(this, 'activity')">Activity</div>
+          <div class="comms-tab" onclick="switchCommsTab(this, 'chat')">Chat</div>
+        </div>
+        
+        <div id="comms-activity" class="hero-list">
+          <div style="font-size:11px; color:#64748b; padding:4px 8px;">
+            Welcome to Nexus Era Open World. <span id="hero-count">0</span> heroes. Vietnam character assets from grudge6.grudge-studio.com (real Grudge6 mesh armours).
+          </div>
+          <div id="hero-list-container"></div>
+        </div>
+        
+        <div id="comms-chat" class="hero-list" style="display:none">
+          <div style="padding:8px; font-size:11px; color:#64748b;">
+            Hero chat connected to Grudge ID.<br>
+            Type to talk to your party.
+          </div>
+          <div style="padding:8px; font-size:12px;">
+            <input id="chat-input" placeholder="Say something..." style="width:100%; background:#1e2937; border:1px solid #334155; color:#e2e8f0; padding:6px; border-radius:4px; font-size:12px;">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HERO CHAT BUTTON -->
+  <div class="hero-chat-btn" onclick="openHeroChat()">
+    <i class="fas fa-comments"></i>
+    <span>Hero Chat</span>
+  </div>
+
+  <div style="position:fixed; bottom:4px; left:50%; transform:translateX(-50%); font-size:10px; color:#334155;">
+    GRUDGE WARLORDS V2.0 BETA • 2D authoritative view (mirror of 3D island)
+  </div>
+
+  <script>
+    // ==================== GRUDGE AUTH (same pattern as launcher / minimap) ====================
+    let currentUser = null;
+
+    (function consumeGrudgeAuth() {
+      try {
+        const sp = new URLSearchParams(location.search);
+        const hs = new URLSearchParams((location.hash || '').replace(/^#/, ''));
+        const token = sp.get('grudge_token') || sp.get('token') || hs.get('grudge_token') || hs.get('token');
+        if (token) {
+          localStorage.setItem('grudge_auth_token', token);
+          localStorage.setItem('access_token', token);
+          const gid = sp.get('grudgeId') || hs.get('grudgeId') || '';
+          if (gid) localStorage.setItem('grudge_id', gid);
+          const name = sp.get('name') || hs.get('username') || 'Hero';
+          if (name) localStorage.setItem('grudge_username', name);
+          history.replaceState({}, '', location.pathname);
+        }
+      } catch(e) {}
+    })();
+
+    function getAuthToken() {
+      return localStorage.getItem('grudge_auth_token') || localStorage.getItem('access_token');
+    }
+
+    function openGrudgeSSO() {
+      const url = `https://id.grudge-studio.com/api/auth/page?app=grudge-warlords&audience=island`;
+      const popup = window.open(url, 'grudge-sso', 'width=460,height=680');
+      window.__grudgePopup = popup;
+    }
+
+    window.addEventListener('message', function(ev) {
+      const d = ev.data || {};
+      if ((d.type === 'grudge:auth:success' || d.type === 'grudge-auth:success') && d.token) {
+        localStorage.setItem('grudge_auth_token', d.token);
+        if (d.grudgeId) localStorage.setItem('grudge_id', d.grudgeId);
+        if (d.user?.username) localStorage.setItem('grudge_username', d.user.username);
+        loadHeroes();
+      }
+    });
+
+    // ==================== ISLAND DATA (constrained + mirror of 3D) ====================
+    const canvas = document.getElementById('world-canvas');
+    const ctx = canvas.getContext('2d', { alpha: true });
+
+    let view = { x: -120, y: -60, scale: 1.05 };
+    let nodes = [];
+    let selectedId = null;
+    let isDragging = false;
+    let dragId = null;
+
+    // Allowed zones for this island (same logic as the minimap we built)
+    const ZONES = {
+      high: [{x:340,y:180},{x:480,y:150},{x:560,y:230},{x:520,y:310},{x:380,y:290}],
+      grass: [{x:240,y:270},{x:620,y:250},{x:670,y:430},{x:260,y:440}],
+      forest: [{x:150,y:210},{x:250,y:180},{x:280,y:340},{x:160,y:350}],
+      coast: [{x:90,y:400},{x:210,y:520},{x:330,y:510},{x:150,y:410}],
+      rock: [{x:620,y:160},{x:700,y:220},{x:680,y:300},{x:600,y:250}]
+    };
+
+    function pointInPoly(pt, poly) {
+      let inside = false;
+      for (let i=0, j=poly.length-1; i<poly.length; j=i++) {
+        const xi = poly[i].x, yi = poly[i].y;
+        const xj = poly[j].x, yj = poly[j].y;
+        const intersect = ((yi > pt.y) !== (yj > pt.y)) && (pt.x < (xj - xi) * (pt.y - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+      }
+      return inside;
+    }
+
+    function getTerrain(x, y) {
+      if (pointInPoly({x,y}, ZONES.high)) return 'high';
+      if (pointInPoly({x,y}, ZONES.rock)) return 'rock';
+      if (pointInPoly({x,y}, ZONES.forest)) return 'forest';
+      if (pointInPoly({x,y}, ZONES.coast)) return 'coast';
+      if (pointInPoly({x,y}, ZONES.grass)) return 'grass';
+      const dist = Math.hypot(x-420, y-310);
+      if (dist > 340) return 'water';
+      return 'grass';
+    }
+
+    function isAllowed(x, y, type) {
+      const t = getTerrain(x, y);
+      if (t === 'water') return false;
+      if (type === 'hero' || type === 'patrol') return true;
+      if (type === 'resource') return ['grass','forest','rock'].includes(t);
+      if (type === 'structure') return ['high','grass','coast'].includes(t);
+      return true;
+    }
+
+    function snapToValid(x, y, type) {
+      if (isAllowed(x, y, type)) return {x, y};
+      // spiral search
+      for (let r=8; r<180; r += 8) {
+        for (let a=0; a<Math.PI*2; a += Math.PI/6) {
+          const tx = x + Math.cos(a)*r;
+          const ty = y + Math.sin(a)*r;
+          if (isAllowed(tx, ty, type)) return {x: tx, y: ty};
+        }
+      }
+      return {x: 420, y: 310};
+    }
+
+    // ==================== DRAWING THE ISLAND ====================
+    function drawIsland() {
+      const w = canvas.width, h = canvas.height;
+      
+      // deep water
+      ctx.fillStyle = '#02040a';
+      ctx.fillRect(0, 0, w, h);
+      
+      // sand / coast
+      ctx.fillStyle = '#c9b38a';
+      ctx.beginPath();
+      ctx.ellipse(430, 330, 330, 250, 0.12, 0, Math.PI*2);
+      ctx.fill();
+      
+      // main grass
+      ctx.fillStyle = '#2f4429';
+      ctx.beginPath();
+      ctx.ellipse(420, 320, 280, 200, -0.06, 0, Math.PI*2);
+      ctx.fill();
+      
+      // high ground
+      ctx.fillStyle = '#3f3226';
+      ctx.beginPath();
+      ctx.ellipse(410, 275, 120, 85, 0.25, 0, Math.PI*2);
+      ctx.fill();
+      
+      // forests
+      ctx.fillStyle = '#1f2f1a';
+      ctx.beginPath(); ctx.ellipse(200, 240, 70, 80, -0.5, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(230, 350, 50, 65, 0.3, 0, Math.PI*2); ctx.fill();
+      
+      // rocks
+      ctx.fillStyle = '#2f2c27';
+      ctx.beginPath(); ctx.ellipse(640, 215, 55, 45, 0.9, 0, Math.PI*2); ctx.fill();
+      
+      // coast detail
+      ctx.strokeStyle = '#a88b5e';
+      ctx.lineWidth = 18;
+      ctx.beginPath();
+      ctx.ellipse(430, 330, 330, 250, 0.12, 0, Math.PI*2);
+      ctx.stroke();
+      
+      // faint grid
+      ctx.strokeStyle = 'rgba(120,100,70,0.06)';
+      ctx.lineWidth = 1;
+      for (let x=30; x<w; x+=32) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+      for (let y=30; y<h; y+=32) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+    }
+
+    function drawNodes() {
+      for (const n of nodes) {
+        const screenX = (n.x + view.x) * view.scale;
+        const screenY = (n.y + view.y) * view.scale;
+        const r = n.type === 'hero' ? 11 : (n.type === 'structure' ? 9 : 7);
+        
+        // shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.4)';
+        ctx.beginPath();
+        ctx.ellipse(screenX+2, screenY+3, r*0.85, r*0.5, 0, 0, Math.PI*2);
+        ctx.fill();
+        
+        // body
+        let color = '#f59e0b';
+        if (n.type === 'resource') color = '#22c55e';
+        if (n.type === 'structure') color = '#a78bfa';
+        if (n.type === 'patrol') color = '#60a5fa';
+        
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(screenX, screenY, r, 0, Math.PI*2);
+        ctx.fill();
+        
+        ctx.strokeStyle = '#0a0f1e';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        
+        // selection
+        if (n.id === selectedId) {
+          ctx.strokeStyle = '#f59e0b';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(screenX, screenY, r + 5, 0, Math.PI*2);
+          ctx.stroke();
+        }
+        
+        // label
+        if (n.label) {
+          ctx.font = '10px Inter, sans-serif';
+          ctx.fillStyle = 'rgba(15,23,42,0.75)';
+          const tw = ctx.measureText(n.label).width;
+          ctx.fillRect(screenX - tw/2 - 3, screenY + r + 3, tw + 6, 13);
+          ctx.fillStyle = '#e2e8f0';
+          ctx.fillText(n.label, screenX, screenY + r + 12);
+        }
+      }
+    }
+
+    function render() {
+      ctx.save();
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      
+      ctx.translate(view.x * view.scale, view.y * view.scale);
+      ctx.scale(view.scale, view.scale);
+      
+      drawIsland();
+      drawNodes();
+      
+      ctx.restore();
+      
+      document.getElementById('node-count').textContent = nodes.length + ' nodes';
+    }
+
+    // ==================== INTERACTION ====================
+    function getWorldPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const sx = e.clientX - rect.left;
+      const sy = e.clientY - rect.top;
+      return {
+        x: (sx / view.scale) - view.x,
+        y: (sy / view.scale) - view.y
+      };
+    }
+
+    function findNodeAt(wx, wy) {
+      for (let i = nodes.length-1; i>=0; i--) {
+        const n = nodes[i];
+        const d = Math.hypot(n.x - wx, n.y - wy);
+        if (d < (n.type === 'hero' ? 18 : 12)) return n;
+      }
+      return null;
+    }
+
+    canvas.addEventListener('mousedown', e => {
+      const w = getWorldPos(e);
+      const hit = findNodeAt(w.x, w.y);
+      
+      if (hit) {
+        selectedId = hit.id;
+        isDragging = true;
+        dragId = hit.id;
+      } else {
+        selectedId = null;
+        isDragging = true;
+        dragId = null;
+      }
+      render();
+      updateHeroList();
+    });
+
+    window.addEventListener('mousemove', e => {
+      if (!isDragging) return;
+      
+      const w = getWorldPos(e);
+      
+      if (dragId) {
+        const node = nodes.find(n => n.id === dragId);
+        if (node) {
+          const v = snapToValid(w.x, w.y, node.type);
+          node.x = v.x;
+          node.y = v.y;
+        }
+      } else {
+        // pan
+        view.x += e.movementX / view.scale;
+        view.y += e.movementY / view.scale;
+      }
+      render();
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (dragId) {
+        const node = nodes.find(n => n.id === dragId);
+        if (node) {
+          const v = snapToValid(node.x, node.y, node.type);
+          node.x = v.x; node.y = v.y;
+        }
+      }
+      isDragging = false;
+      dragId = null;
+      render();
+    });
+
+    canvas.addEventListener('wheel', e => {
+      e.preventDefault();
+      const w = getWorldPos(e);
+      const factor = e.deltaY < 0 ? 1.12 : 1/1.12;
+      view.scale = Math.max(0.45, Math.min(2.8, view.scale * factor));
+      const after = getWorldPos(e);
+      view.x += (after.x - w.x);
+      view.y += (after.y - w.y);
+      render();
+    });
+
+    canvas.addEventListener('click', e => {
+      const w = getWorldPos(e);
+      const hit = findNodeAt(w.x, w.y);
+      if (hit) {
+        selectedId = hit.id;
+        logActivity(`Selected ${hit.label || hit.type}`);
+      }
+      render();
+      updateHeroList();
+    });
+
+    function switchTo3D() {
+      alert("3D World would launch the full Babylon.js / Three.js island here.\nFor now it would open your real 3D client or the GrudgeBuilder.");
+      // In real deployment: window.location = '/3d' or launch the 3D engine
+    }
+
+    // ==================== HEROES + DATA ====================
+    function loadHeroes() {
+      const token = getAuthToken();
+      nodes = [];
+      
+      // Try to load from previous character system / GCS style data
+      // For now we seed with good demo that respects constraints
+      const demoHeroes = [
+        {id:'h1', type:'hero', label:'You', x:390, y:260},
+        {id:'h2', type:'hero', label:'Veyra', x:470, y:310},
+        {id:'h3', type:'patrol', label:'Scout', x:310, y:290},
+      ];
+      
+      demoHeroes.forEach(h => {
+        const v = snapToValid(h.x, h.y, h.type);
+        nodes.push({...h, x: v.x, y: v.y});
+      });
+      
+      // Add some resources and structures in valid places
+      const resources = [
+        {id:'r1', type:'resource', label:'Grove', x:190, y:250},
+        {id:'r2', type:'resource', label:'Ore', x:650, y:240},
+        {id:'r3', type:'resource', label:'Farm', x:340, y:410},
+      ];
+      resources.forEach(r => {
+        const v = snapToValid(r.x, r.y, r.type);
+        nodes.push({...r, x:v.x, y:v.y});
+      });
+      
+      const structures = [
+        {id:'s1', type:'structure', label:'Keep', x:410, y:240},
+        {id:'s2', type:'structure', label:'Tower', x:550, y:280},
+      ];
+      structures.forEach(s => {
+        const v = snapToValid(s.x, s.y, s.type);
+        nodes.push({...s, x:v.x, y:v.y});
+      });
+      
+      updateHeroList();
+      render();
+      
+      // Simulate some life
+      startSimulation();
+    }
+
+    function updateHeroList() {
+      const container = document.getElementById('hero-list-container');
+      const heroes = nodes.filter(n => n.type === 'hero' || n.type === 'patrol');
+      
+      document.getElementById('hero-count').textContent = heroes.length;
+      
+      container.innerHTML = heroes.map(h => `
+        <div class="hero-row" onclick="selectHero('${h.id}')">
+          <div class="hero-dot" style="background:${h.type==='hero' ? '#f59e0b' : '#60a5fa'}">
+            <i class="fas fa-user" style="font-size:9px; color:#0a0f1e"></i>
+          </div>
+          <div style="flex:1">
+            <div style="font-weight:500">${h.label}</div>
+            <div style="font-size:10px; color:#64748b">${h.type}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function selectHero(id) {
+      selectedId = id;
+      const n = nodes.find(x => x.id === id);
+      if (n) {
+        // center camera on it
+        view.x = canvas.width/2 / view.scale - n.x;
+        view.y = canvas.height/2 / view.scale - n.y;
+      }
+      render();
+      updateHeroList();
+    }
+
+    function returnAllHeroes() {
+      const heroes = nodes.filter(n => n.type === 'hero');
+      heroes.forEach(h => {
+        const v = snapToValid(410 + (Math.random()-0.5)*80, 280 + (Math.random()-0.5)*60, 'hero');
+        h.x = v.x; h.y = v.y;
+      });
+      render();
+      logActivity('All heroes returned to central keep');
+    }
+
+    // ==================== LIVE SIMULATION ====================
+    let simInterval = null;
+    
+    function startSimulation() {
+      if (simInterval) clearInterval(simInterval);
+      simInterval = setInterval(() => {
+        let moved = false;
+        nodes.forEach(n => {
+          if (n.type === 'patrol' || (n.type === 'hero' && Math.random() < 0.3)) {
+            // pick a target (keep or resource)
+            const targets = nodes.filter(x => x.type === 'structure' || x.type === 'resource');
+            if (targets.length) {
+              const t = targets[Math.floor(Math.random()*targets.length)];
+              const dx = t.x - n.x, dy = t.y - n.y;
+              const d = Math.hypot(dx, dy) || 1;
+              let nx = n.x + dx/d * 14;
+              let ny = n.y + dy/d * 14;
+              const v = snapToValid(nx, ny, n.type);
+              n.x = v.x; n.y = v.y;
+              moved = true;
+            }
+          }
+        });
+        if (moved) render();
+        
+        if (Math.random() < 0.18) {
+          logActivity(['Patrol found something', 'Resource node produced', 'Hero leveled up', 'Scout returned'][Math.floor(Math.random()*4)]);
+        }
+      }, 950);
+    }
+
+    // ==================== ACTIVITY LOG ====================
+    function logActivity(text) {
+      const container = document.getElementById('hero-list-container');
+      if (!container) return;
+      
+      const el = document.createElement('div');
+      el.style.cssText = 'font-size:10px; padding:3px 6px; color:#64748b; border-left:2px solid #334155; margin-bottom:2px';
+      el.textContent = text;
+      container.prepend(el);
+      
+      // trim
+      while (container.children.length > 6) container.removeChild(container.lastChild);
+    }
+
+    function switchCommsTab(el, which) {
+      document.querySelectorAll('.comms-tab').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      
+      document.getElementById('comms-activity').style.display = which === 'activity' ? '' : 'none';
+      document.getElementById('comms-chat').style.display = which === 'chat' ? '' : 'none';
+    }
+
+    function openHeroChat() {
+      const input = prompt('Hero Chat (demo)\nMessage for your party:');
+      if (input) logActivity('You: ' + input);
+    }
+
+    // ==================== KEYBOARD + INIT ====================
+    function initCanvas() {
+      // Make canvas fill its container
+      function resize() {
+        const container = document.getElementById('map-container');
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+        render();
+      }
+      window.addEventListener('resize', resize);
+      setTimeout(resize, 50);
+      
+      // initial render will happen after nodes load
+    }
+
+    function init() {
+      initCanvas();
+      
+      // Load heroes (will be real when Grudge ID is linked)
+      loadHeroes();
+      
+      // Initial activity
+      setTimeout(() => logActivity('Island loaded. Nodes constrained to valid terrain.'), 600);
+      
+      // Keyboard
+      document.addEventListener('keydown', e => {
+        if (e.key === 'r' || e.key === 'R') returnAllHeroes();
+        if (e.key.toLowerCase() === 'g') {
+          openGrudgeSSO();
+        }
+      });
+      
+      // Make sure we have some life even if no auth
+      const token = getAuthToken();
+      if (token) {
+        // In real app we would fetch real characters here
+        logActivity('Grudge ID linked — loading your heroes...');
+      }
+      
+      // Click anywhere on map to deselect hint
+      console.log('%c[Grudge Warlords] 2D Sprite view ready — beautiful constrained island map', 'color:#64748b');
+    }
+    
+    // Boot
+    window.onload = init;
+  </script>
+</body>
+</html>

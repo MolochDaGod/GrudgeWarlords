@@ -64,17 +64,28 @@ export class CharacterLoader {
         const charData = this.getCharacterData(characterId);
         this.currentCharacter = charData;
         
-        // Build paths
-        const basePath = `./assets/characters/${charData.folder}/`;
-        const modelPath = charData.subfolder ? `${basePath}${charData.subfolder}/` : basePath;
+        // Build paths - support full URLs for Vietnam / Nexus era (grudge6.grudge-studio.com)
+        let modelUrl = charData.modelFile;
+        let modelPath = '';
+        let modelFileName = '';
+        if (modelUrl && modelUrl.startsWith('http')) {
+          // full URL for grudge6 Vietnam assets etc.
+          const lastSlash = modelUrl.lastIndexOf('/');
+          modelPath = modelUrl.substring(0, lastSlash + 1);
+          modelFileName = modelUrl.substring(lastSlash + 1);
+        } else {
+          const basePath = `./assets/characters/${charData.folder}/`;
+          modelPath = charData.subfolder ? `${basePath}${charData.subfolder}/` : basePath;
+          modelFileName = charData.modelFile;
+        }
         
-        console.log(`📁 Loading from: ${modelPath}${charData.modelFile}`);
+        console.log(`📁 Loading from: ${modelPath}${modelFileName} (Nexus/Vietnam support)`);
         
         // Load main character model
         const result = await BABYLON.SceneLoader.ImportMeshAsync(
             null, 
             modelPath,
-            charData.modelFile, 
+            modelFileName, 
             scene
         );
         

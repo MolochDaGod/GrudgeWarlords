@@ -1,38 +1,49 @@
 {
-  "rewrites": [
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "routes": [
+    { "handle": "filesystem" },
     {
-      "source": "/favicon.svg",
-      "destination": "/3D-Action-RPG-JavaScript-main/favicon.svg"
+      "src": "/api/auth/(.*)",
+      "dest": "https://id.grudge-studio.com/auth/$1"
     },
     {
-      "source": "/favicon.ico",
-      "destination": "/3D-Action-RPG-JavaScript-main/assets/icons/favicon.ico"
+      "src": "/api/characters/(.*)",
+      "dest": "https://api.grudge-studio.com/api/characters/$1"
     },
     {
-      "source": "/",
-      "destination": "/3D-Action-RPG-JavaScript-main/index.html"
+      "src": "/api/assets/(.*)",
+      "dest": "https://assets.grudge-studio.com/$1"
     },
     {
-      "source": "/(.*)",
-      "destination": "/3D-Action-RPG-JavaScript-main/$1"
+      "src": "/api/(.*)",
+      "dest": "https://api.grudge-studio.com/api/$1"
+    },
+    {
+      "src": "/favicon.svg",
+      "dest": "/3D-Action-RPG-JavaScript-main/favicon.svg"
+    },
+    {
+      "src": "/favicon.ico",
+      "dest": "/3D-Action-RPG-JavaScript-main/assets/icons/favicon.ico"
+    },
+    {
+      "src": "/",
+      "dest": "/3D-Action-RPG-JavaScript-main/index.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/3D-Action-RPG-JavaScript-main/$1"
     }
   ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, PUT, DELETE, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "X-Requested-With, Content-Type, Authorization"
-        }
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "X-Requested-With, Content-Type, Authorization" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
       ]
     }
   ]
