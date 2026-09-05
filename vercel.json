@@ -19,14 +19,6 @@
       "dest": "https://api.grudge-studio.com/api/$1"
     },
     {
-      "src": "/favicon.svg",
-      "dest": "/3D-Action-RPG-JavaScript-main/favicon.svg"
-    },
-    {
-      "src": "/favicon.ico",
-      "dest": "/3D-Action-RPG-JavaScript-main/assets/icons/favicon.ico"
-    },
-    {
       "src": "/",
       "dest": "/3D-Action-RPG-JavaScript-main/index.html"
     },
